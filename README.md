@@ -1,50 +1,31 @@
-# React + TypeScript + Vite
+# Изучаем арабские буквы
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Изучаем арабские буквы** — это интерактивная обучающая игра, разработанная для запоминания арабского алфавита. Игра помогает пользователям легко запомнить формы букв и их названия, улучшая визуальную память и знакомя с особенностями арабской письменности. Она подходит как для начинающих, так и для тех, кто хочет углубить свои знания.
 
-Currently, two official plugins are available:
+## Особенности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Интерактивное запоминание:** Каждая буква отображается на экране с тремя вариантами названий. Задача игрока — выбрать правильное название для показанной буквы.
+- **Прогресс и статистика:** Игра фиксирует количество правильных и неправильных ответов, время, затраченное на каждую букву, и максимальную серию правильных ответов.
+- **Таймеры:** Отслеживается общее время игры и время на каждую букву, что помогает оценить темп обучения.
+- **Адаптивный дизайн:** Интерфейс оптимизирован для работы как на мобильных устройствах, так и на десктопах.
 
-## Expanding the ESLint configuration
+## Как играть
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. **Запуск игры:** Нажмите кнопку "Начать игру" на стартовом экране.
+2. **Выбор ответа:** При показе арабской буквы выберите один из трёх вариантов названий, который, по вашему мнению, соответствует букве.
+3. **Обратная связь:** Если выбранный вариант верный, ваш счет увеличивается; в случае ошибки игра фиксирует неправильный ответ.
+4. **Продолжение:** После ответа игра автоматически переходит к следующей букве.
+5. **Результаты:** По завершении игры вы получите подробную статистику с информацией о правильных и неправильных ответах, точности, максимальной серии и общем времени игры.
 
-- Configure the top-level `parserOptions` property like this:
+## Технологии
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- **React:** Фреймворк для создания динамичного и отзывчивого пользовательского интерфейса.
+- **Tailwind CSS:** Утилитарный CSS-фреймворк для быстрой и удобной стилизации компонентов.
+- **TypeScript:** Обеспечивает статическую типизацию и повышает качество кода.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Вклад в проект
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Если у вас есть предложения по улучшению или вы хотите внести свой вклад, пожалуйста, создайте pull request или откройте issue.
+Лицензия
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+Этот проект распространяется под лицензией MIT.
