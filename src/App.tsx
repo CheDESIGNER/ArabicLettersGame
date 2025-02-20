@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/Card";
 
@@ -480,57 +481,73 @@ if (gameOver) {
 }
 
 
-  // Main game screen
-  return (
-    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
-      {/* Progress bar */}
-      <div className="w-full max-w-md mx-auto mb-4" dir="rtl">
-        <div className="bg-gray-300 rounded-full h-1">
-          <div
-            className="bg-blue-600 h-1 rounded-full transition-all duration-500"
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-        </div>
+// Main game screen
+return (
+  <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
+    {/* Progress bar */}
+    <div className="w-full max-w-md mx-auto mb-4" dir="rtl">
+      <div className="bg-gray-300 rounded-full h-1">
+        <div
+          className="bg-blue-600 h-1 rounded-full transition-all duration-500"
+          style={{ width: `${progressPercent}%` }}
+        ></div>
       </div>
+    </div>
 
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center text-xl sm:text-2xl">
-            <span>Изучаем арабские буквы</span>
-            <Button
-              onClick={() => setIsMuted(!isMuted)}
-              className="px-3 py-2 text-base bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              {isMuted ? "🔇" : "🔊"}
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center mb-8">
-            <h2
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center text-xl sm:text-2xl">
+          <span>Изучаем арабские буквы</span>
+          <Button
+            onClick={() => setIsMuted(!isMuted)}
+            className="px-3 py-2 text-base bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </Button>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestion}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="text-center mb-8"
+          >
+            <motion.h2
               className="text-7xl sm:text-8xl mb-8 cursor-pointer transition hover:scale-105"
               onClick={() => {
                 if (audioRef.current && !isMuted) {
                   audioRef.current.play().catch(console.error);
                 }
               }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               {randomizedQuestion.letter}
-            </h2>
+            </motion.h2>
             <p className="text-xs sm:text-sm text-gray-500">
               Таймер: {questionTimer} секунд
             </p>
-          </div>
+          </motion.div>
+        </AnimatePresence>
 
-          <audio ref={audioRef} src={randomizedQuestion.audioSrc} hidden />
+        <audio ref={audioRef} src={randomizedQuestion.audioSrc} hidden />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            {randomizedQuestion.options.map((option, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {randomizedQuestion.options.map((option, index) => (
+            <motion.div
+              key={option}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
               <Button
-                key={index}
                 onClick={() => handleAnswer(index)}
                 disabled={answerSelected}
-                className={`text-lg sm:text-xl py-4 ${
+                className={`text-lg sm:text-xl py-4 w-full ${
                   answerSelected && selectedAnswerIndex === index
                     ? selectedAnswerIndex === randomizedQuestion.correctIndex
                       ? "bg-green-500 hover:bg-green-600"
@@ -540,6 +557,7 @@ if (gameOver) {
               >
                 {option}
               </Button>
+            </motion.div>
             ))}
           </div>
 
