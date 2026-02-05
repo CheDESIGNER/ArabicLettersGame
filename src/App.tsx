@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { Button } from "./components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/Card";
 
@@ -527,8 +527,9 @@ return (
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <AnimatePresence mode="wait">
-          <motion.div
+        <LazyMotion features={domAnimation}>
+          <AnimatePresence mode="wait">
+            <m.div
               key={currentQuestion}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -536,7 +537,7 @@ return (
               transition={{ duration: 0.3 }}
               className="text-center mb-8"
             >
-              <motion.h2
+              <m.h2
                 className="text-7xl sm:text-8xl mb-8 cursor-pointer transition hover:scale-105"
                 onClick={() => {
                   if (audioRef.current && !isMuted) {
@@ -547,18 +548,18 @@ return (
                 whileTap={{ scale: 0.95 }}
               >
                 {randomizedQuestion.letter}
-              </motion.h2>
+              </m.h2>
               <p className="text-xs sm:text-sm text-gray-500">
                 Таймер: {questionTimer} секунд
               </p>
-            </motion.div>
+            </m.div>
           </AnimatePresence>
 
         <audio ref={audioRef} src={randomizedQuestion.audioSrc} hidden />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {randomizedQuestion.options.map((option, index) => (
-            <motion.div
+            <m.div
               key={option}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -577,7 +578,7 @@ return (
               >
                 {option}
               </Button>
-            </motion.div>
+            </m.div>
             ))}
           </div>
 
@@ -612,6 +613,7 @@ return (
               Перезапустить игру
             </Button>
           </div>
+        </LazyMotion>
       </CardContent>
       </Card>
     </div>
