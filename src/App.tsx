@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/Card";
@@ -229,27 +229,34 @@ function generateRandomizedQuestion(
   return { ...question, options, correctIndex };
 }
 
+type ArabicLetter = (typeof arabicLetters)[number];
+
+interface RandomizedQuestion extends ArabicLetter {
+  options: string[];
+  correctIndex: number;
+}
+
+const initialScore = {
+  total: 0,
+  correct: 0,
+  incorrect: 0,
+  streak: 0,
+  maxStreak: 0,
+};
+
 const ArabicLetterGame = () => {
   // Flag for showing instructions before the game starts
   const [hasStarted, setHasStarted] = useState(false);
 
   const [letters, setLetters] = useState(shuffleArray(arabicLetters));
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [randomizedQuestion, setRandomizedQuestion] = useState(
-    generateRandomizedQuestion(letters[currentQuestion], letterNames)
-  );
   const [incorrectAnswers, setIncorrectAnswers] = useState<
     { letter: string; correctAnswer: string; userAnswer: string }[]
   >([]);
-  const [score, setScore] = useState({
-    total: 0,
-    correct: 0,
-    incorrect: 0,
-    streak: 0,
-    maxStreak: 0,
-  });
+  const [score, setScore] = useState(initialScore);
   const [gameOver, setGameOver] = useState(false);
-  const [questionTimer, setQuestionTimer] = useState(0);
+  const [questionStartTime, setQuestionStartTime] = useState(() => Date.now());
+  const [, setTimerTick] = useState(0);
   const [overallTimer, setOverallTimer] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [answerSelected, setAnswerSelected] = useState(false);
@@ -257,25 +264,32 @@ const ArabicLetterGame = () => {
     null
   );
   const audioRef = useRef<HTMLAudioElement>(null);
+  const nextQuestionTimeoutRef = useRef<number | null>(null);
+
+  const currentLetter = letters[currentQuestion] ?? letters[0];
+  const randomizedQuestion: RandomizedQuestion = useMemo(
+    () => generateRandomizedQuestion(currentLetter, letterNames),
+    [currentLetter]
+  );
+
+  const questionTimer = Math.floor((Date.now() - questionStartTime) / 1000);
 
   useEffect(() => {
-    if (letters[currentQuestion]) {
-      setRandomizedQuestion(
-        generateRandomizedQuestion(letters[currentQuestion], letterNames)
-      );
+    if (currentLetter) {
       setSelectedAnswerIndex(null);
-      // Removed reset of questionTimer to let time keep going
+      setQuestionStartTime(Date.now());
+      setTimerTick((prev) => prev + 1);
     }
-  }, [letters, currentQuestion]);
+  }, [currentLetter]);
 
-  // Start question timer only if the game has started and is not over
+  // Update per-question timer only if game is active.
   useEffect(() => {
     if (!hasStarted || gameOver) return;
     const interval = setInterval(() => {
-      setQuestionTimer((prev) => prev + 1);
+      setTimerTick((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [currentQuestion, gameOver, hasStarted]);
+  }, [gameOver, hasStarted]);
 
   // Start overall timer only if the game has started and is not over
   useEffect(() => {
@@ -297,8 +311,17 @@ const ArabicLetterGame = () => {
     }
   }, [currentQuestion, isMuted]);
 
-  const handleAnswer = (selectedIndex: number) => {
+  useEffect(() => {
+    return () => {
+      if (nextQuestionTimeoutRef.current) {
+        window.clearTimeout(nextQuestionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleAnswer = useCallback((selectedIndex: number) => {
     if (answerSelected) return;
+
     setAnswerSelected(true);
     setSelectedAnswerIndex(selectedIndex);
     const isCorrect = selectedIndex === randomizedQuestion.correctIndex;
@@ -323,32 +346,29 @@ const ArabicLetterGame = () => {
         : prev.maxStreak,
     }));
 
-    setTimeout(() => {
+    nextQuestionTimeoutRef.current = window.setTimeout(() => {
       if (currentQuestion + 1 < letters.length) {
-        setCurrentQuestion(currentQuestion + 1);
+        setCurrentQuestion((prev) => prev + 1);
       } else {
         setGameOver(true);
       }
     }, 500);
-  };
+  }, [answerSelected, currentQuestion, letters.length, randomizedQuestion]);
 
-  const restartGame = () => {
+  const restartGame = useCallback(() => {
+    if (nextQuestionTimeoutRef.current) {
+      window.clearTimeout(nextQuestionTimeoutRef.current);
+    }
     setLetters(shuffleArray(arabicLetters));
     setCurrentQuestion(0);
     setIncorrectAnswers([]);
-    setScore({
-      total: 0,
-      correct: 0,
-      incorrect: 0,
-      streak: 0,
-      maxStreak: 0,
-    });
+    setScore(initialScore);
     setGameOver(false);
-    setQuestionTimer(0);
+    setQuestionStartTime(Date.now());
     setOverallTimer(0);
     setAnswerSelected(false);
     setSelectedAnswerIndex(null);
-  };
+  }, []);
 
   const progressPercent = ((currentQuestion + 1) / letters.length) * 100;
 
@@ -509,30 +529,30 @@ return (
       <CardContent>
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentQuestion}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="text-center mb-8"
-          >
-            <motion.h2
-              className="text-7xl sm:text-8xl mb-8 cursor-pointer transition hover:scale-105"
-              onClick={() => {
-                if (audioRef.current && !isMuted) {
-                  audioRef.current.play().catch(console.error);
-                }
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              key={currentQuestion}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="text-center mb-8"
             >
-              {randomizedQuestion.letter}
-            </motion.h2>
-            <p className="text-xs sm:text-sm text-gray-500">
-              Таймер: {questionTimer} секунд
-            </p>
-          </motion.div>
-        </AnimatePresence>
+              <motion.h2
+                className="text-7xl sm:text-8xl mb-8 cursor-pointer transition hover:scale-105"
+                onClick={() => {
+                  if (audioRef.current && !isMuted) {
+                    audioRef.current.play().catch(console.error);
+                  }
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {randomizedQuestion.letter}
+              </motion.h2>
+              <p className="text-xs sm:text-sm text-gray-500">
+                Таймер: {questionTimer} секунд
+              </p>
+            </motion.div>
+          </AnimatePresence>
 
         <audio ref={audioRef} src={randomizedQuestion.audioSrc} hidden />
 
@@ -592,7 +612,7 @@ return (
               Перезапустить игру
             </Button>
           </div>
-        </CardContent>
+      </CardContent>
       </Card>
     </div>
   );
